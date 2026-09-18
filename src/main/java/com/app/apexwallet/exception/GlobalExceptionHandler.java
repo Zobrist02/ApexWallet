@@ -20,4 +20,16 @@ public class GlobalExceptionHandler {
     public String handleUserNotFound(UserNotFoundException exception){
         return exception.getMessage();
     }
+
+    @ExceptionHandler(WalletAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public String handleWalletAlreadyExists(WalletAlreadyExistsException exception){
+        return exception.getMessage();
+    }
+
+    @ExceptionHandler(WalletNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleWalletNotFound(WalletNotFoundException exception){
+        return exception.getMessage();
+    }
 }
