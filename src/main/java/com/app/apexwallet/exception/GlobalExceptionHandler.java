@@ -32,4 +32,16 @@ public class GlobalExceptionHandler {
     public String handleWalletNotFound(WalletNotFoundException exception){
         return exception.getMessage();
     }
+
+    @ExceptionHandler(InvalidAmountException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleInvalidAmount(InvalidAmountException exception) {
+        return exception.getMessage();
+    }
+
+    @ExceptionHandler(InsufficientBalanceException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleInsufficientBalance(InsufficientBalanceException exception) {
+        return exception.getMessage();
+    }
 }

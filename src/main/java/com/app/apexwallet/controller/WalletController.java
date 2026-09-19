@@ -3,6 +3,7 @@ package com.app.apexwallet.controller;
 import com.app.apexwallet.dto.WalletCreateRequest;
 import com.app.apexwallet.dto.WalletCreateResponse;
 import com.app.apexwallet.dto.WalletResponse;
+import com.app.apexwallet.dto.WalletTransactionRequest;
 import com.app.apexwallet.service.WalletService;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,5 +24,21 @@ public class WalletController {
     @GetMapping("/{id}/wallet")
     public WalletResponse displayWallet(@PathVariable Long id){
         return walletService.getWallet(id);
+    }
+
+    @PostMapping("/{id}/wallet/deposit")
+    public WalletResponse deposit(
+            @PathVariable Long id,
+            @RequestBody WalletTransactionRequest request) {
+
+        return walletService.deposit(id, request);
+    }
+
+    @PostMapping("/{id}/wallet/withdraw")
+    public WalletResponse withdraw(
+            @PathVariable Long id,
+            @RequestBody WalletTransactionRequest request) {
+
+        return walletService.withdraw(id, request);
     }
 }
