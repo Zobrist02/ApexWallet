@@ -11,10 +11,17 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
+
+    @Column(unique = true, nullable = false)
     private String email;
+
     private String passwordHash;
+
     private LocalDateTime createdAt;
+
+    private String role;
 
     public String getName() {
         return name;
@@ -50,5 +57,13 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
