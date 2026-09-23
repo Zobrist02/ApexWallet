@@ -1,6 +1,7 @@
 package com.app.apexwallet.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -33,15 +34,17 @@ public class GlobalExceptionHandler {
         return exception.getMessage();
     }
 
-    @ExceptionHandler(InvalidAmountException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleInvalidAmount(InvalidAmountException exception) {
-        return exception.getMessage();
-    }
-
     @ExceptionHandler(InsufficientBalanceException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleInsufficientBalance(InsufficientBalanceException exception) {
         return exception.getMessage();
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleValidationException(MethodArgumentNotValidException exception){
+        return exception.getBindingResult()
+                .getFieldError()
+                .getDefaultMessage();
     }
 }

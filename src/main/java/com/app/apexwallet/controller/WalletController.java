@@ -1,19 +1,23 @@
 package com.app.apexwallet.controller;
 
-import com.app.apexwallet.dto.WalletCreateRequest;
-import com.app.apexwallet.dto.WalletCreateResponse;
-import com.app.apexwallet.dto.WalletResponse;
-import com.app.apexwallet.dto.WalletTransactionRequest;
+import com.app.apexwallet.dto.*;
+import com.app.apexwallet.service.TransactionService;
 import com.app.apexwallet.service.WalletService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
 public class WalletController {
-    public WalletService walletService;
+    private final WalletService walletService;
 
-    public WalletController(WalletService walletService){
+    private final TransactionService transactionService;
+
+    public WalletController(WalletService walletService, TransactionService transactionService){
         this.walletService = walletService;
+        this.transactionService = transactionService;
     }
 
     @PostMapping("/{id}/wallet")
@@ -29,7 +33,7 @@ public class WalletController {
     @PostMapping("/{id}/wallet/deposit")
     public WalletResponse deposit(
             @PathVariable Long id,
-            @RequestBody WalletTransactionRequest request) {
+            @Valid @RequestBody WalletTransactionRequest request) {
 
         return walletService.deposit(id, request);
     }
@@ -37,8 +41,13 @@ public class WalletController {
     @PostMapping("/{id}/wallet/withdraw")
     public WalletResponse withdraw(
             @PathVariable Long id,
-            @RequestBody WalletTransactionRequest request) {
+            @Valid @RequestBody WalletTransactionRequest request) {
 
         return walletService.withdraw(id, request);
+    }
+
+    @GetMapping("/{id}/transactions")
+    public List<TransactionResponse> getTransactions(@PathVariable Long id){
+        return transactionService.getTransactionsForUser(id);
     }
 }
