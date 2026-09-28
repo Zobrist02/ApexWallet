@@ -39,7 +39,8 @@ public class TransactionService {
             Long walletId,
             TransactionType type,
             BigDecimal amount,
-            BigDecimal balanceAfter) {
+            BigDecimal balanceAfter,
+            String idempotencyKey) {
 
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() ->
@@ -53,6 +54,7 @@ public class TransactionService {
         transaction.setBalanceAfter(balanceAfter);
         transaction.setStatus(TransactionStatus.FAILED);
         transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setIdempotencyKey(idempotencyKey);
 
         transactionRepository.save(transaction);
     }

@@ -36,6 +36,9 @@ public class Transaction {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "idempotency_key", unique = true)
+    private String idempotencyKey;
+
     public Long getId() {
         return id;
     }
@@ -90,5 +93,13 @@ public class Transaction {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
     }
 }

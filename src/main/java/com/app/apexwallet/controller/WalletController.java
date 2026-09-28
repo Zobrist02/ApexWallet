@@ -33,17 +33,19 @@ public class WalletController {
     @PostMapping("/{id}/wallet/deposit")
     public WalletResponse deposit(
             @PathVariable Long id,
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
             @Valid @RequestBody WalletTransactionRequest request) {
 
-        return walletService.deposit(id, request);
+        return walletService.deposit(id, request, idempotencyKey);
     }
 
     @PostMapping("/{id}/wallet/withdraw")
     public WalletResponse withdraw(
             @PathVariable Long id,
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
             @Valid @RequestBody WalletTransactionRequest request) {
 
-        return walletService.withdraw(id, request);
+        return walletService.withdraw(id, request, idempotencyKey);
     }
 
     @GetMapping("/{id}/transactions")

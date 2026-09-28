@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class WalletService {
@@ -67,7 +68,30 @@ public class WalletService {
     }
 
     @Transactional
-    public WalletResponse deposit(Long id, WalletTransactionRequest request) {
+    public WalletResponse deposit(Long id, WalletTransactionRequest request, String idempotencyKey) {
+
+        Optional<Transaction> existingTransaction =
+                transactionRepository.findByIdempotencyKey(idempotencyKey);
+
+        if (existingTransaction.isPresent()) {
+            Transaction transaction = existingTransaction.get();
+
+            if (transaction.getAmount().compareTo(request.getAmount()) != 0
+                    || transaction.getType() != TransactionType.DEPOSIT) {
+
+                throw new IllegalArgumentException(
+                        "Idempotency key was already used for a different transaction"
+                );
+            }
+
+            return new WalletResponse(
+                    transaction.getWallet().getId(),
+                    transaction.getBalanceAfter(),
+                    transaction.getWallet().getCurrency(),
+                    transaction.getWallet().getCreatedAt(),
+                    transaction.getWallet().getUpdatedAt()
+            );
+        }
 
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
@@ -94,6 +118,7 @@ public class WalletService {
         transaction.setBalanceAfter(savedWallet.getBalance());
         transaction.setStatus(TransactionStatus.SUCCESS);
         transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setIdempotencyKey(idempotencyKey);
 
         transactionRepository.save(transaction);
 
@@ -106,7 +131,36 @@ public class WalletService {
         );
     }
     @Transactional
-    public WalletResponse withdraw(Long id, WalletTransactionRequest request) {
+    public WalletResponse withdraw(Long id, WalletTransactionRequest request, String idempotencyKey) {
+
+        Optional<Transaction> existingTransaction =
+                transactionRepository.findByIdempotencyKey(idempotencyKey);
+
+        if (existingTransaction.isPresent()) {
+            Transaction transaction = existingTransaction.get();
+
+            if (transaction.getAmount().compareTo(request.getAmount()) != 0
+                    || transaction.getType() != TransactionType.WITHDRAWAL) {
+
+                throw new IllegalArgumentException(
+                        "Idempotency key was already used for a different transaction"
+                );
+            }
+
+            if (transaction.getStatus() == TransactionStatus.FAILED) {
+                throw new InsufficientBalanceException(
+                        "This withdrawal was already processed and failed"
+                );
+            }
+
+            return new WalletResponse(
+                    transaction.getWallet().getId(),
+                    transaction.getBalanceAfter(),
+                    transaction.getWallet().getCurrency(),
+                    transaction.getWallet().getCreatedAt(),
+                    transaction.getWallet().getUpdatedAt()
+            );
+        }
 
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
@@ -122,7 +176,7 @@ public class WalletService {
 
         if (wallet.getBalance().compareTo(amount) < 0){
 
-            transactionService.recordFailedTransaction(wallet.getId(), TransactionType.WITHDRAWAL, amount, wallet.getBalance());
+            transactionService.recordFailedTransaction(wallet.getId(), TransactionType.WITHDRAWAL, amount, wallet.getBalance(), idempotencyKey);
 
             throw new InsufficientBalanceException("Insufficient balance in your account");
         }
@@ -139,6 +193,7 @@ public class WalletService {
         transaction.setBalanceAfter(savedWallet.getBalance());
         transaction.setStatus(TransactionStatus.SUCCESS);
         transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setIdempotencyKey(idempotencyKey);
 
         transactionRepository.save(transaction);
 
