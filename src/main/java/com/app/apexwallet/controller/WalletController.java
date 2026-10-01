@@ -5,11 +5,13 @@ import com.app.apexwallet.entity.TransactionReport;
 import com.app.apexwallet.service.ReportingService;
 import com.app.apexwallet.service.TransactionService;
 import com.app.apexwallet.service.WalletService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/users")
 public class WalletController {

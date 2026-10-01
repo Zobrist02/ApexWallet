@@ -14,6 +14,8 @@ import com.app.apexwallet.kafka.TransactionEvent;
 import com.app.apexwallet.repository.TransactionRepository;
 import com.app.apexwallet.repository.UserRepository;
 import com.app.apexwallet.repository.WalletRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,6 +32,9 @@ public class WalletService {
     private final TransactionRepository transactionRepository;
     private final TransactionService transactionService;
     private final ApplicationEventPublisher eventPublisher;
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(WalletService.class);
 
     public WalletService(
             UserRepository userRepository,
@@ -70,7 +75,7 @@ public class WalletService {
 
     public WalletResponse getWallet(Long id){
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User does not exist"));
-        Wallet wallet = walletRepository.findByUser(user);
+        Wallet wallet = walletRepository.findWalletByUser(user);
         if (wallet == null){
             throw new WalletNotFoundException("User does not have a wallet");
         }
@@ -79,6 +84,12 @@ public class WalletService {
 
     @Transactional
     public WalletResponse deposit(Long id, WalletTransactionRequest request, String idempotencyKey) {
+
+        logger.info(
+                "Deposit requested for user {} with amount {}",
+                id,
+                request.getAmount()
+        );
 
         Optional<Transaction> existingTransaction =
                 transactionRepository.findByIdempotencyKey(idempotencyKey);
@@ -142,6 +153,12 @@ public class WalletService {
 
         eventPublisher.publishEvent(event);
 
+        logger.info(
+                "Deposit completed successfully for user {} with amount {}",
+                id,
+                request.getAmount()
+        );
+
         return new WalletResponse(
                 savedWallet.getId(),
                 savedWallet.getBalance(),
@@ -152,6 +169,12 @@ public class WalletService {
     }
     @Transactional
     public WalletResponse withdraw(Long id, WalletTransactionRequest request, String idempotencyKey) {
+
+        logger.info(
+                "Withdrawal requested for user {} with amount {}",
+                id,
+                request.getAmount()
+        );
 
         Optional<Transaction> existingTransaction =
                 transactionRepository.findByIdempotencyKey(idempotencyKey);
@@ -198,6 +221,13 @@ public class WalletService {
 
             transactionService.recordFailedTransaction(wallet.getId(), TransactionType.WITHDRAWAL, amount, wallet.getBalance(), idempotencyKey);
 
+            logger.warn(
+                    "Withdrawal rejected for user {} due to insufficient balance. Requested: {}, Available: {}",
+                    id,
+                    amount,
+                    wallet.getBalance()
+            );
+
             throw new InsufficientBalanceException("Insufficient balance in your account");
         }
 
@@ -226,6 +256,12 @@ public class WalletService {
         );
 
         eventPublisher.publishEvent(event);
+
+        logger.info(
+                "Withdrawal completed successfully for user {} with amount {}",
+                id,
+                amount
+        );
 
         return new WalletResponse(
                 savedWallet.getId(),

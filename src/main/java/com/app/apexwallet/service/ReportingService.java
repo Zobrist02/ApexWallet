@@ -12,6 +12,8 @@ import com.app.apexwallet.repository.TransactionReportRepository;
 import com.app.apexwallet.repository.UserRepository;
 import com.app.apexwallet.repository.WalletRepository;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,6 +28,9 @@ public class ReportingService {
 
     private final UserRepository userRepository;
 
+    private static final Logger logger =
+            LoggerFactory.getLogger(ReportingService.class);
+
     public ReportingService(
             TransactionReportRepository transactionReportRepository, WalletRepository walletRepository, UserRepository userRepository) {
 
@@ -37,6 +42,10 @@ public class ReportingService {
     public void recordTransaction(TransactionEvent event) {
 
         if (transactionReportRepository.existsById(event.getTransactionId())) {
+            logger.info(
+                    "Duplicate transaction event ignored by reporting service: transactionId={}",
+                    event.getTransactionId()
+            );
             return;
         }
 
@@ -53,6 +62,14 @@ public class ReportingService {
         report.setReceivedAt(LocalDateTime.now());
 
         transactionReportRepository.save(report);
+
+        logger.info(
+                "Transaction report recorded successfully: transactionId={}, walletId={}, type={}, amount={}",
+                event.getTransactionId(),
+                event.getWalletId(),
+                event.getTransactionType(),
+                event.getAmount()
+        );
     }
 
     public List<TransactionReport> getReports(Long userId) {

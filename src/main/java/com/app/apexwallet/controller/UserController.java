@@ -4,11 +4,13 @@ import com.app.apexwallet.dto.UserCreateRequest;
 import com.app.apexwallet.dto.UserResponse;
 import com.app.apexwallet.dto.UserUpdateRequest;
 import com.app.apexwallet.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
