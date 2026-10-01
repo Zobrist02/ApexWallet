@@ -1,6 +1,8 @@
 package com.app.apexwallet.controller;
 
 import com.app.apexwallet.dto.*;
+import com.app.apexwallet.entity.TransactionReport;
+import com.app.apexwallet.service.ReportingService;
 import com.app.apexwallet.service.TransactionService;
 import com.app.apexwallet.service.WalletService;
 import jakarta.validation.Valid;
@@ -14,10 +16,12 @@ public class WalletController {
     private final WalletService walletService;
 
     private final TransactionService transactionService;
+    private final ReportingService reportingService;
 
-    public WalletController(WalletService walletService, TransactionService transactionService){
+    public WalletController(WalletService walletService, TransactionService transactionService, ReportingService reportingService){
         this.walletService = walletService;
         this.transactionService = transactionService;
+        this.reportingService = reportingService;
     }
 
     @PostMapping("/{id}/wallet")
@@ -51,5 +55,19 @@ public class WalletController {
     @GetMapping("/{id}/transactions")
     public List<TransactionResponse> getTransactions(@PathVariable Long id){
         return transactionService.getTransactionsForUser(id);
+    }
+
+    @GetMapping("/{id}/transaction-reports")
+    public List<TransactionReport> getTransactionReports(
+            @PathVariable Long id) {
+
+        return reportingService.getReports(id);
+    }
+
+    @GetMapping("/{id}/transaction-reports/summary")
+    public TransactionReportSummary getTransactionReportSummary(
+            @PathVariable Long id) {
+
+        return reportingService.getSummary(id);
     }
 }

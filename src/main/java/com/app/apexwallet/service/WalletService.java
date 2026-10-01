@@ -10,11 +10,13 @@ import com.app.apexwallet.entity.Wallet;
 import com.app.apexwallet.enums.TransactionStatus;
 import com.app.apexwallet.enums.TransactionType;
 import com.app.apexwallet.exception.*;
+import com.app.apexwallet.kafka.TransactionEvent;
 import com.app.apexwallet.repository.TransactionRepository;
 import com.app.apexwallet.repository.UserRepository;
 import com.app.apexwallet.repository.WalletRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,12 +29,20 @@ public class WalletService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final TransactionService transactionService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public WalletService(UserRepository userRepository, WalletRepository walletRepository, TransactionRepository transactionRepository, TransactionService transactionService){
+    public WalletService(
+            UserRepository userRepository,
+            WalletRepository walletRepository,
+            TransactionRepository transactionRepository,
+            TransactionService transactionService,
+            ApplicationEventPublisher eventPublisher) {
+
         this.userRepository = userRepository;
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.transactionService = transactionService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -122,6 +132,16 @@ public class WalletService {
 
         transactionRepository.save(transaction);
 
+        TransactionEvent event = new TransactionEvent(
+                transaction.getId(),
+                savedWallet.getId(),
+                transaction.getType().name(),
+                transaction.getAmount(),
+                transaction.getBalanceAfter()
+        );
+
+        eventPublisher.publishEvent(event);
+
         return new WalletResponse(
                 savedWallet.getId(),
                 savedWallet.getBalance(),
@@ -196,6 +216,16 @@ public class WalletService {
         transaction.setIdempotencyKey(idempotencyKey);
 
         transactionRepository.save(transaction);
+
+        TransactionEvent event = new TransactionEvent(
+                transaction.getId(),
+                savedWallet.getId(),
+                transaction.getType().name(),
+                transaction.getAmount(),
+                transaction.getBalanceAfter()
+        );
+
+        eventPublisher.publishEvent(event);
 
         return new WalletResponse(
                 savedWallet.getId(),
