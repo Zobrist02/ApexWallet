@@ -1,6 +1,5 @@
 package com.app.apexwallet.service;
 
-import com.app.apexwallet.dto.UserCreateRequest;
 import com.app.apexwallet.dto.UserResponse;
 import com.app.apexwallet.dto.UserUpdateRequest;
 import com.app.apexwallet.entity.User;
@@ -9,7 +8,6 @@ import com.app.apexwallet.exception.UserNotFoundException;
 import com.app.apexwallet.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,29 +17,6 @@ public class UserService {
 
     public UserService(UserRepository userRepository){
         this.userRepository = userRepository;
-    }
-
-    public UserResponse createUser(UserCreateRequest request){
-
-        if(userRepository.existsByEmail(request.getEmail())){
-            throw new UserAlreadyExistsException(
-                    "User with this email already exists"
-            );
-        }
-        else{
-         User user = new User();
-         user.setName(request.getName());
-         user.setEmail(request.getEmail());
-         user.setPasswordHash(request.getPassword());
-         user.setCreatedAt(LocalDateTime.now());
-
-         User savedUser = userRepository.save(user);
-            return new UserResponse(
-                    savedUser.getId(),
-                    savedUser.getName(),
-                    savedUser.getEmail(),
-                    savedUser.getCreatedAt());
-        }
     }
 
     public UserResponse updateUser(UserUpdateRequest request, Long id){

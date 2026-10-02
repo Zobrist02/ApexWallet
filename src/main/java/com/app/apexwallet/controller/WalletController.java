@@ -7,6 +7,7 @@ import com.app.apexwallet.service.TransactionService;
 import com.app.apexwallet.service.WalletService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/users")
+@PreAuthorize("@securityService.isOwner(#id)")
 public class WalletController {
     private final WalletService walletService;
 

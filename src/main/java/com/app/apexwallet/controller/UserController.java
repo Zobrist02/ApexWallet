@@ -1,11 +1,11 @@
 package com.app.apexwallet.controller;
 
-import com.app.apexwallet.dto.UserCreateRequest;
 import com.app.apexwallet.dto.UserResponse;
 import com.app.apexwallet.dto.UserUpdateRequest;
 import com.app.apexwallet.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,32 +19,32 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping
-    public UserResponse createUser(@Valid @RequestBody UserCreateRequest request){
-        return userService.createUser(request);
-    }
-
     @PatchMapping("/{id}")
+    @PreAuthorize("@securityService.isOwner(#id)")
     public UserResponse updateUser(@Valid @RequestBody UserUpdateRequest request, @PathVariable Long id){
         return userService.updateUser(request, id);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("@securityService.isOwner(#id)")
     public String deleteUser(@PathVariable Long id){
         return userService.deleteUser(id);
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getAllUsers(){
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@securityService.isOwner(#id)")
     public UserResponse getUser(@PathVariable Long id){
         return userService.getUserById(id);
     }
 
     @GetMapping("/email")
+    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse getUserByEmail(@RequestParam String email){
         return userService.getUserByEmail(email);
     }
